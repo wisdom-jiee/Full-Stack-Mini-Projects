@@ -8,11 +8,11 @@
 
 ```
 exercise/
-├─ phonebook-backend/
+├─ backend/
 │  ├─ index.js
 │  ├─ package.json
 │  └─ requests/
-├─ phonebook-frontend/
+├─ frontend/
 │  ├─ src/
 │  │  ├─ App.jsx
 │  │  └─ main.jsx
@@ -39,8 +39,8 @@ exercise/
 
 ```bash
 cd phonebook-backend
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 后端默认运行在 `http://localhost:3001`
@@ -49,8 +49,8 @@ npm run dev
 
 ```bash
 cd phonebook-frontend
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 前端默认运行在 `http://localhost:5173`（或终端显示的地址）
