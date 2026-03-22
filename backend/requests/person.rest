@@ -1,23 +1,31 @@
-<<<<<<< HEAD
-GET http://localhost:3001/api/persons
-
-###
-GET http://localhost:3001/info
-
-###
-GET http://localhost:3001/api/persons/1
-
-###
-DELETE http://localhost:3001/api/persons/2
-
-###
-POST http://localhost:3001/api/persons
+POST http://localhost:3001/api/login
 Content-Type: application/json
 
 {
-  "name": "Grace Hopper",
-  "number": "123-456789"
+  "username": "admin",
+  "password": "admin"
 }
+
+
+# GET http://localhost:3001/api/persons
+
+# ###
+# GET http://localhost:3001/info
+
+# ###
+# GET http://localhost:3001/api/persons/1
+
+# ###
+# DELETE http://localhost:3001/api/persons/2
+
+# ###
+# POST http://localhost:3001/api/persons
+# Content-Type: application/json
+
+# {
+#   "name": "Grace Hopper",
+#   "number": "123-456789"
+# }
 
 # ###
 # POST http://localhost:3001/api/persons
@@ -33,40 +41,4 @@ Content-Type: application/json
 # Content-Type: application/json
 # {
 #   "name": "No Number"
-=======
-GET http://localhost:3001/api/persons
-
-###
-GET http://localhost:3001/info
-
-###
-GET http://localhost:3001/api/persons/1
-
-###
-DELETE http://localhost:3001/api/persons/2
-
-###
-POST http://localhost:3001/api/persons
-Content-Type: application/json
-
-{
-  "name": "Grace Hopper",
-  "number": "123-456789"
-}
-
-# ###
-# POST http://localhost:3001/api/persons
-# Content-Type: application/json
-
-# {
-#   "name": "Ada Lovelace",
-#   "number": "999-999"
-# }
-
-# ###
-# POST http://localhost:3001/api/persons
-# Content-Type: application/json
-# {
-#   "name": "No Number"
->>>>>>> 98a2c21ee6fb9f1a3270d76dd40f5f42df82345b
 # }
