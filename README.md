@@ -1,8 +1,8 @@
 # Phonebook Full-Stack Demo
 
 一个简单的全栈电话簿练习项目，包含：
-- 后端：Express + CORS API（`phonebook-backend`）
-- 前端：React + Vite（`phonebook-frontend`）
+- 后端：Express + CORS API（`backend`）
+- 前端：React + Vite（`frontend`）
 
 ## ✅ 项目结构
 
@@ -38,7 +38,7 @@ exercise/
 ### 1) 启动后端
 
 ```bash
-cd phonebook-backend
+cd backend
 pnpm install
 pnpm run dev
 ```
@@ -48,7 +48,7 @@ pnpm run dev
 ### 2) 启动前端
 
 ```bash
-cd phonebook-frontend
+cd frontend
 pnpm install
 pnpm run dev
 ```

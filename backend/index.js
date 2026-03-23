@@ -1,33 +1,12 @@
 const express = require('express')
 const cors = require('cors') //引入cors中间件，允许跨域请求
 const cookieParser = require('cookie-parser')//引入cookie-parser中间件，解析请求中的cookie
+const fs = require('fs')
 const app = express()
+
 app.use(cors()) //使用cors中间件，允许所有来源的请求
 app.use(cookieParser()) 
 app.use(express.json())//中间件 解析请求体中的JSON数据，使我们可以request.body来访问
-
-let persons = [
-  { 
-    id: "1",
-    name: "Arto Hellas", 
-    number: "040-123456"
-  },
-  { 
-    id: "2",
-    name: "Ada Lovelace", 
-    number: "39-44-5323523"
-  },
-  { 
-    id: "3",
-    name: "Dan Abramov", 
-    number: "12-43-234345"
-  },
-  { 
-    id: "4",
-    name: "Mary Poppendieck", 
-    number: "39-23-6423122"
-  }
-]
 
 let users = [
   {
@@ -61,15 +40,26 @@ const authMiddleware = (request, response, next) => {//中间件，身份验证
   next()
 }
 
+const readPerson = () => { //文件->字符串->对象
+  const data = fs.readFileSync('./persons.json', 'utf-8')
+  return JSON.parse(data)
+}
+
+const writePerson = (persons) => {
+  fs.writeFileSync('./persons.json', JSON.stringify(persons, null, 2))//null为格式化输出，2表示缩进2个空格
+}
+
 const generateId = () => {
   return String(Math.floor(Math.random() * 1000000))
 }
 
 app.get('/api/persons',authMiddleware, (request, response) => {
+  const persons = readPerson()
   response.json(persons)
 })
 
 app.get('/info', (request, response) => {
+  const persons = readPerson()
   const count = persons.length
   const date = new Date()
   response.send(`
@@ -79,6 +69,7 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons/:id', authMiddleware, (request, response) => {
+  const persons = readPerson()
   const id = request.params.id
   const person = persons.find(p => p.id === id) 
   if (person) {
@@ -89,12 +80,15 @@ app.get('/api/persons/:id', authMiddleware, (request, response) => {
 })
 
 app.post('/api/persons/:id', authMiddleware, (request, response) => {//删除联系人
+  const persons = readPerson()
   const id = request.params.id
-  persons = persons.filter(person => person.id !== id)
+  const updatedPersons = persons.filter(person => person.id !== id)
+  writePerson(updatedPersons)
   response.status(204).end()
 })
 
 app.post('/api/persons', authMiddleware, (request, response) => {
+  const persons = readPerson()
   const body = request.body
 
   if (!body.name || !body.number) {
@@ -113,7 +107,8 @@ app.post('/api/persons', authMiddleware, (request, response) => {
     name: body.name,
     number: body.number
   }
-  persons = persons.concat(person)
+  const updatedPersons = persons.concat(person)
+  writePerson(updatedPersons)
   response.json(person)
 })
 
