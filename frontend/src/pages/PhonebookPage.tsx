@@ -1,63 +1,81 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Box, Paper, Typography, TextField, Button, Alert, List, ListItem, ListItemText, Divider} from '@mui/material'
 import type { Person } from '../types/person'
+import { fetchPersons, createPerson, removePerson } from '../services/persons'
+
 
 function PhonebookPage() {
-  const [persons, setPersons] = useState<Person[]>([])
   const [newName, setNewName] = useState<string>('')
   const [newNumber, setNewNumber] = useState<string>('')
+  const [deleteId, setDeleteId] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string>('')
 
-  useEffect(() => {
-    fetch('http://localhost:3001/api/persons', {
-      credentials: 'include'
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('failed to fetch persons')
-        }
-        return response.json() as Promise<Person[]> //告诉TypeScript这个Promise解析后会得到一个Person数组
-      })
-      .then((data) => {
-        setPersons(data)
-      })
-      .catch((error: Error) => {
-        setErrorMessage(error.message)
-      })
-  }, [])
+  const queryClient = useQueryClient()
 
-  const addPerson = (event: React.SyntheticEvent) => { //定义事件处理函数的参数类型为React.SyntheticEvent
+  const {
+    data: persons = [],
+    isPending,
+    error,
+  } = useQuery<Person[], Error>({
+    queryKey: ['persons'],
+    queryFn: fetchPersons,
+    staleTime: 1000 * 10, //登录时已预取电话簿，设置10秒的过期时间避免重复拉取
+  })
+
+  const addPersonMutation = useMutation({
+    mutationFn: createPerson,
+    onSuccess: (newPerson) => {
+      queryClient.setQueryData<Person[]>(['persons'], (old = []) => [
+        ...old,
+        newPerson,
+      ])
+      setNewName('')
+      setNewNumber('')
+      setErrorMessage('')
+    },
+    onError: (error: Error) => {
+      setErrorMessage(error.message)
+    },
+  })
+
+  const deletePersonMutation = useMutation({
+    mutationFn: removePerson,
+    onSuccess: (deletedId) => {
+      queryClient.setQueryData<Person[]>(['persons'], (old = []) =>
+        old.filter((person) => person.id !== deletedId)
+      )
+      setDeleteId('')
+      setErrorMessage('')
+    },
+    onError: (error: Error) => {
+      setErrorMessage(error.message)
+    },
+  })
+
+  const addPerson = (event: React.SyntheticEvent) => {
     event.preventDefault()
 
-    const personObject: Omit<Person, 'id'> = { //定义一个从Person类型中去掉id属性的新类型
+    const personObject: Omit<Person, 'id'> = {
       name: newName,
-      number: newNumber
+      number: newNumber,
     }
-
-    fetch('http://localhost:3001/api/persons', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(personObject)
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('failed to add person')
-        }
-        return response.json() as Promise<Person>
-      })
-      .then((returnedPerson) => {
-        setPersons((prevPersons) => prevPersons.concat(returnedPerson))
-        setNewName('')
-        setNewNumber('')
-        setErrorMessage('')
-      })
-      .catch((error: Error) => {
-        setErrorMessage(error.message)
-      })
+    addPersonMutation.mutate(personObject)
   }
+
+  const deletePerson = (event: React.SyntheticEvent) => {
+    event.preventDefault()
+    deletePersonMutation.mutate(deleteId)
+  }
+
+  if (isPending) {
+    return <Typography>Loading...</Typography>
+  }
+
+  if (error) {
+    return <Alert severity="error">{error.message}</Alert>
+  }
+
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -70,35 +88,8 @@ function PhonebookPage() {
         </Alert>
       )}
 
-      <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Add a new contact
-        </Typography>
-
-        <Box
-          component="form"
-          onSubmit={addPerson}
-          sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-        >
-          <TextField
-            label="Name"
-            value={newName}
-            onChange={(event) => setNewName(event.target.value)}
-          />
-
-          <TextField
-            label="Number"
-            value={newNumber}
-            onChange={(event) => setNewNumber(event.target.value)}
-          />
-
-          <Button type="submit" variant="contained">
-            Add
-          </Button>
-        </Box>
-      </Paper>
-
-      <Paper elevation={2} sx={{ p: 2 }}>
+      {/* 上方先展示电话簿内容 */}
+      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           Numbers
         </Typography>
@@ -108,7 +99,7 @@ function PhonebookPage() {
             <Box key={person.id}>
               <ListItem>
                 <ListItemText
-                  primary={person.name}
+                  primary={`${person.name} (id: ${person.id})`}
                   secondary={person.number}
                 />
               </ListItem>
@@ -117,9 +108,72 @@ function PhonebookPage() {
           ))}
         </List>
       </Paper>
+
+      {/* 下方添加联系人，一行布局 */}
+      <Paper elevation={2} sx={{ p: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Add
+        </Typography>
+
+        <Box
+          component="form"
+          onSubmit={addPerson}
+          sx={{
+            display: 'flex',
+            gap: 2,
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}
+        >
+          <TextField
+            label="Name"
+            value={newName}
+            onChange={(event) => setNewName(event.target.value)}
+            size="small"
+          />
+
+          <TextField
+            label="Number"
+            value={newNumber}
+            onChange={(event) => setNewNumber(event.target.value)}
+            size="small"
+          />
+
+          <Button type="submit" variant="contained">
+            Add
+          </Button>
+        </Box>
+      </Paper>
+
+      <Paper elevation={2} sx={{ p: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Delete
+        </Typography>
+
+        <Box
+          component="form"
+          onSubmit={deletePerson}
+          sx={{
+            display: 'flex',
+            gap: 2,
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}
+        >
+          <TextField
+            label="Person ID"
+            value={deleteId}
+            onChange={(event) => setDeleteId(event.target.value)}
+            size="small"
+          />
+
+          <Button type="submit" variant="contained" color="error">
+            Delete
+          </Button>
+        </Box>
+      </Paper>
     </Box>
   )
 }
-
 
 export default PhonebookPage

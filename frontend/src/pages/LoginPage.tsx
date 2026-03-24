@@ -1,54 +1,42 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom' // 导入useNavigate用于页面跳转
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Box, Paper, Typography, TextField, Button, Alert} from '@mui/material'
-
-type LoginResponse = {
-  message?: string
-  username?: string
-  error?: string
-}
+import { login, type LoginResponse } from '../services/auth'
+import { fetchPersons } from '../services/persons'
 
 function LoginPage() {
   const [username, setUsername] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false)
 
   const navigate = useNavigate()// 获取navigate函数用于页面跳转
+  const queryClient = useQueryClient()
 
-  const handleLogin = async (event: React.SyntheticEvent) => {
-    event.preventDefault()
-    setErrorMessage('')
-    setLoading(true)
-
-    try {
-      const response = await fetch('http://localhost:3001/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ username, password })
-      })
-
-      const data: LoginResponse = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'login failed')
-      }
-
+  const loginMutation = useMutation<LoginResponse, Error, { username: string; password: string }>({
+    mutationFn: login,
+    onSuccess: async () => {
       setUsername('')
       setPassword('')
+      setErrorMessage('')
+
+      await queryClient.prefetchQuery({// 预取联系人数据
+        queryKey: ['persons'],
+        queryFn: fetchPersons,
+      })
+
       navigate('/phonebook')
-    } catch (error) {
-      if (error instanceof Error) {
-        setErrorMessage(error.message)
-      } else {
-        setErrorMessage('unknown error')
-      }
-    } finally {
-      setLoading(false)
-    }
+    },
+    onError: (error) => {
+      setErrorMessage(error.message)
+    },
+  })
+
+  const handleLogin = (event: React.SyntheticEvent) => {
+    event.preventDefault()
+    setErrorMessage('')
+
+    loginMutation.mutate({ username, password })
   }
 
   return (
@@ -93,9 +81,9 @@ function LoginPage() {
             variant="contained"
             fullWidth
             sx={{ mt: 2 }}
-            disabled={loading}
+            disabled={loginMutation.isPending}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loginMutation.isPending ? 'Logging in...' : 'Login'}
           </Button>
         </Box>
       </Paper>
