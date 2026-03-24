@@ -1,35 +1,35 @@
 import { useEffect, useState } from 'react'
 import { Box, Paper, Typography, TextField, Button, Alert, List, ListItem, ListItemText, Divider} from '@mui/material'
-
+import type { Person } from '../types/person'
 
 function PhonebookPage() {
-  const [persons, setPersons] = useState([])
-  const [newName, setNewName] = useState('')
-  const [newNumber, setNewNumber] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
+  const [persons, setPersons] = useState<Person[]>([])
+  const [newName, setNewName] = useState<string>('')
+  const [newNumber, setNewNumber] = useState<string>('')
+  const [errorMessage, setErrorMessage] = useState<string>('')
 
   useEffect(() => {
     fetch('http://localhost:3001/api/persons', {
-      credentials: 'include' // 发送请求时包含cookie
+      credentials: 'include'
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error('failed to fetch persons')
         }
-        return response.json()
+        return response.json() as Promise<Person[]> //告诉TypeScript这个Promise解析后会得到一个Person数组
       })
-      .then(data => {
+      .then((data) => {
         setPersons(data)
       })
-      .catch(error => {
+      .catch((error: Error) => {
         setErrorMessage(error.message)
       })
   }, [])
 
-  const addPerson = (event) => {
+  const addPerson = (event: React.SyntheticEvent) => { //定义事件处理函数的参数类型为React.SyntheticEvent
     event.preventDefault()
 
-    const personObject = {
+    const personObject: Omit<Person, 'id'> = { //定义一个从Person类型中去掉id属性的新类型
       name: newName,
       number: newNumber
     }
@@ -42,23 +42,23 @@ function PhonebookPage() {
       credentials: 'include',
       body: JSON.stringify(personObject)
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error('failed to add person')
         }
-        return response.json()
+        return response.json() as Promise<Person>
       })
-      .then(returnedPerson => {
-        setPersons(prevPersons => prevPersons.concat(returnedPerson))
+      .then((returnedPerson) => {
+        setPersons((prevPersons) => prevPersons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
         setErrorMessage('')
       })
-      .catch(error => {
+      .catch((error: Error) => {
         setErrorMessage(error.message)
       })
   }
-return (
+  return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
         Phonebook
@@ -120,5 +120,6 @@ return (
     </Box>
   )
 }
+
 
 export default PhonebookPage

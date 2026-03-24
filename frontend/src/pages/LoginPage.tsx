@@ -2,15 +2,21 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom' // 导入useNavigate用于页面跳转
 import { Box, Paper, Typography, TextField, Button, Alert} from '@mui/material'
 
+type LoginResponse = {
+  message?: string
+  username?: string
+  error?: string
+}
+
 function LoginPage() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [username, setUsername] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [errorMessage, setErrorMessage] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
 
   const navigate = useNavigate()// 获取navigate函数用于页面跳转
 
-  const handleLogin = async (event) => {
+  const handleLogin = async (event: React.SyntheticEvent) => {
     event.preventDefault()
     setErrorMessage('')
     setLoading(true)
@@ -25,20 +31,21 @@ function LoginPage() {
         body: JSON.stringify({ username, password })
       })
 
-      const data = await response.json()
+      const data: LoginResponse = await response.json()
 
       if (!response.ok) {
         throw new Error(data.error || 'login failed')
       }
 
-      console.log('Login success:', data)
-
       setUsername('')
       setPassword('')
-
-      navigate('/phonebook')// 跳转到电话簿页面
+      navigate('/phonebook')
     } catch (error) {
-      setErrorMessage(error.message)
+      if (error instanceof Error) {
+        setErrorMessage(error.message)
+      } else {
+        setErrorMessage('unknown error')
+      }
     } finally {
       setLoading(false)
     }
@@ -95,6 +102,5 @@ function LoginPage() {
     </Box>
   )
 }
-
 
 export default LoginPage
