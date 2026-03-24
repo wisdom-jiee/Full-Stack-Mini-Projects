@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Box, Paper, Typography, TextField, Button, Alert, List, ListItem, ListItemText, Divider} from '@mui/material'
+
 
 function PhonebookPage() {
   const [persons, setPersons] = useState([])
@@ -56,41 +58,66 @@ function PhonebookPage() {
         setErrorMessage(error.message)
       })
   }
+return (
+    <Box sx={{ mt: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Phonebook
+      </Typography>
 
-  return (
-    <div>
-      <h2>Phonebook</h2>
-      {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
+      {errorMessage && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
 
-      <form onSubmit={addPerson}>
-        <div>
-          name:
-          <input
+      <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Add a new contact
+        </Typography>
+
+        <Box
+          component="form"
+          onSubmit={addPerson}
+          sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+        >
+          <TextField
+            label="Name"
             value={newName}
             onChange={(event) => setNewName(event.target.value)}
           />
-        </div>
-        <div>
-          number:
-          <input
+
+          <TextField
+            label="Number"
             value={newNumber}
             onChange={(event) => setNewNumber(event.target.value)}
           />
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
 
-      <h2>Numbers</h2>
-      <ul>
-        {persons.map(person => (
-          <li key={person.id}>
-            {person.name} {person.number}
-          </li>
-        ))}
-      </ul>
-    </div>
+          <Button type="submit" variant="contained">
+            Add
+          </Button>
+        </Box>
+      </Paper>
+
+      <Paper elevation={2} sx={{ p: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Numbers
+        </Typography>
+
+        <List>
+          {persons.map((person, index) => (
+            <Box key={person.id}>
+              <ListItem>
+                <ListItemText
+                  primary={person.name}
+                  secondary={person.number}
+                />
+              </ListItem>
+              {index < persons.length - 1 && <Divider />}
+            </Box>
+          ))}
+        </List>
+      </Paper>
+    </Box>
   )
 }
 

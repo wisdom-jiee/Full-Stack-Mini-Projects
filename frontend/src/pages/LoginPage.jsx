@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom' // 导入useNavigate用于页面跳转
+import { Box, Paper, Typography, TextField, Button, Alert} from '@mui/material'
 
 function LoginPage() {
   const [username, setUsername] = useState('')
@@ -44,41 +45,56 @@ function LoginPage() {
   }
 
   return (
-    <div>
-      <h2>Login</h2>
+    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+      <Paper elevation={3} sx={{ p: 4, width: 420 }}>
+        <Typography variant="h4" gutterBottom>
+          Login
+        </Typography>
 
-      {errorMessage && (
-        <div style={{ color: 'red', marginBottom: '10px' }}>
-          {errorMessage}
-        </div>
-      )}
+        <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+          Please sign in to access your phonebook.
+        </Typography>
 
-      <form onSubmit={handleLogin}>
-        <div>
-          username:{' '}
-          <input
+        {errorMessage && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
+
+        <Box component="form" onSubmit={handleLogin}>
+          <TextField
+            label="Username"
+            variant="outlined"
+            fullWidth
+            margin="normal"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
           />
-        </div>
 
-        <div>
-          password:{' '}
-          <input
+          <TextField
+            label="Password"
             type="password"
+            variant="outlined"
+            fullWidth
+            margin="normal"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-        </div>
 
-        <div style={{ marginTop: '10px' }}>
-          <button type="submit" disabled={loading}> {/*发送登录请求后，按钮禁用*/}
-            {loading ? 'logging in...' : 'login'}
-          </button>
-        </div>
-      </form>
-    </div>
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={{ mt: 2 }}
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   )
 }
+
 
 export default LoginPage
